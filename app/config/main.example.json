@@ -1,0 +1,10 @@
+{
+  "tmdbApiKey": "",
+  "userAgent": "M3Prism/1.0",
+  "theme": "dark",
+  "language": "en",
+  "customBranding": {
+    "name": "M3 Prism",
+    "accentColor": "#8b5cf6"
+  }
+}

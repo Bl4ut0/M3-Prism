@@ -1,0 +1,10 @@
+[
+  {
+    "id": "provider1",
+    "name": "M3P Premium",
+    "url": "http://your-provider.com:8080",
+    "type": "xtream",
+    "userAgent": "M3Prism/1.0",
+    "epgUrl": "http://your-provider.com:8080/xmltv.php"
+  }
+]

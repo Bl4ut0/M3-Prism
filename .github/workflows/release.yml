@@ -1,0 +1,120 @@
+name: Build & Release M3-Prism (Desktop + PortfoliOS Web Runtime)
+
+on:
+  push:
+    branches:
+      - main
+    tags:
+      - 'v*'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build-portfolios-web:
+    name: Build PortfoliOS Web Bundle
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+          cache-dependency-path: app/client/package-lock.json
+
+      - name: Install client dependencies
+        working-directory: app/client
+        run: npm ci
+
+      - name: Build PortfoliOS web bundle & receipt
+        run: node scripts/build-portfolios.mjs
+
+      - name: Package PortfoliOS web bundle archive
+        run: |
+          cd app/client/dist
+          zip -r ../../../m3prism-portfolios-web.zip .
+          cp release.json ../../../m3prism-portfolios-release.json
+
+      - name: Upload PortfoliOS web artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: m3prism-portfolios-web
+          path: |
+            m3prism-portfolios-web.zip
+            m3prism-portfolios-release.json
+            app/client/dist/
+
+  build-desktop-windows:
+    name: Build Windows Desktop Installer
+    runs-on: windows-latest
+    if: startsWith(github.ref, 'refs/tags/v') || github.event_name == 'workflow_dispatch'
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Install dependencies
+        working-directory: app
+        run: |
+          npm ci
+          npm --prefix client ci
+          npm --prefix server ci
+
+      - name: Ensure build resources in app/build
+        run: |
+          mkdir -p app/build
+          cp -r build/* app/build/ || true
+
+      - name: Build Windows Electron package
+        working-directory: app
+        run: npm run dist
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Upload Windows installer artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: m3prism-windows-installer
+          path: |
+            release/*.exe
+            release/*.msi
+            release/latest.yml
+
+  publish-release:
+    name: Publish Primary Release Assets
+    needs: [build-portfolios-web]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download PortfoliOS web artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: m3prism-portfolios-web
+          path: release-assets
+
+      - name: Publish to tagged GitHub Release
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            release-assets/m3prism-portfolios-web.zip
+            release-assets/m3prism-portfolios-release.json
+          generate_release_notes: true
+
+      - name: Update Rolling Primary Web Release (portfolios-latest)
+        if: github.ref == 'refs/heads/main'
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: portfolios-latest
+          name: M3-Prism PortfoliOS Primary Web Bundle (Latest Main)
+          prerelease: false
+          files: |
+            release-assets/m3prism-portfolios-web.zip
+            release-assets/m3prism-portfolios-release.json

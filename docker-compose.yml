@@ -1,0 +1,29 @@
+version: '3.8'
+
+services:
+  m3prism:
+    build: .
+    container_name: m3prism
+    restart: unless-stopped
+    ports:
+      - "3001:3001"
+    volumes:
+      - m3prism_data:/data
+      - ./app/config:/app/config:ro
+    environment:
+      - PORT=3001
+      - HOST=0.0.0.0
+      - DB_PATH=/data/user_data.db
+      - CACHE_DIR=/data/cache/assets
+      - USER_DATA_DIR=/data
+      - NODE_ENV=production
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://localhost:3001/api/status"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+
+volumes:
+  m3prism_data:
+    driver: local

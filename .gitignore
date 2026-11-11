@@ -1,0 +1,46 @@
+# Development environment
+.env
+.env.*
+!.env.example
+.agent/
+.assets/
+
+# Application Dependencies
+app/node_modules/
+app/client/node_modules/
+app/server/node_modules/
+
+# OS Artifacts
+.DS_Store
+Thumbs.db
+
+# Database & Cache Data
+app/*.db
+app/*.db-shm
+app/*.db-wal
+app/server/*.db
+app/server/*.db-shm
+app/server/*.db-wal
+app/server/cache/
+app/config/cache/
+app/config/user_data.db*
+
+# App Configuration (Private)
+app/config/*.json
+!app/config/*.example.json
+
+# Builds & Outputs
+app/client/dist/
+release/
+dist/
+*.exe
+*.dmg
+*.zip
+*.AppImage
+
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*

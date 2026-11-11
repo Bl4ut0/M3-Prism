@@ -1,0 +1,7 @@
+{
+  "tmdb_api_key": "YOUR_TMDB_API_KEY_HERE",
+  "language": "en-US",
+  "include_adult": false,
+  "epg_sync_interval_min": 120,
+  "proxy_timeout_ms": 30000
+}
